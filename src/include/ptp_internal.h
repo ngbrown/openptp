@@ -27,7 +27,12 @@
 #ifndef _PTP_INTERNAL_H_
 #define _PTP_INTERNAL_H_
 
+#ifdef _WIN32
+#include <windows/ptp_types.h>
+#include <WinSock2.h>
+#else
 #include <linux/ptp_types.h>
+#endif
 #include <ptp_config.h>
 #include <ptp_message.h>
 #include <clock_if.h>
@@ -66,7 +71,8 @@ struct ForeignMasterDataSetElem_p {
 };
 
 // Helpers
-inline static u64 ntohll(u64 x)
+#ifndef _WIN32
+static u64 ntohll(u64 x)
 {
     u32 *tmp1 = (u32 *) & x;
     u32 *tmp2 = (tmp1 + 1);
@@ -76,6 +82,7 @@ inline static u64 ntohll(u64 x)
 }
 
 #define htonll(x) ntohll(x)
+#endif
 
 // String helpers
 char *get_ptp_event_clk_str(enum ptp_event_clk event);

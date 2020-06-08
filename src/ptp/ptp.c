@@ -38,6 +38,10 @@
 #include "ptp_bmc.h"
 #include "ptp_port.h"
 
+#ifdef _WIN32
+#include "windows\getopt.h"
+#endif
+
 /// Main data
 struct ptp_ctx ptp_ctx;
 int socket_restart = 0;
@@ -46,8 +50,11 @@ int socket_restart = 0;
 
 // Local data
 static int trigger_reconfiguration = 0;
-static struct sigaction sigaction_data;
 static int daemon_running = 1;
+
+#ifndef _WIN32
+static struct sigaction sigaction_data;
+#endif
 
 // Local functions
 static void signal_handler(int signal_number);
@@ -88,7 +95,7 @@ void ptp_main(int argc, char *argv[])
     int debug = 0;
     int daemonize = 0;
     char c;
-    pid_t pid, sid;
+    //pid_t pid, sid;
 
     // Clean context
     memset(&ptp_ctx, 0, sizeof(struct ptp_ctx));
@@ -121,10 +128,11 @@ void ptp_main(int argc, char *argv[])
     }
 
     // daemonize
+#ifndef _WIN32
     if (daemonize == 1){
         pid = fork();
         if (pid < 0) {
-            ERROR("fork\n");
+			LOG_ERROR("fork\n");
             exit(EXIT_FAILURE);
         }
         // Exit parent
@@ -138,13 +146,13 @@ void ptp_main(int argc, char *argv[])
         // Create a new SID for the child 
         sid = setsid();
         if (sid < 0) {
-            ERROR("setsid\n");
+			LOG_ERROR("setsid\n");
             exit(EXIT_FAILURE);
         }
         
         // Change working dir
         if ((chdir("/")) < 0) {
-            ERROR("chdir\n");
+			LOG_ERROR("chdir\n");
             exit(EXIT_FAILURE);
         }
         
@@ -156,6 +164,7 @@ void ptp_main(int argc, char *argv[])
         open("/dev/null", O_WRONLY);
         dup(STDOUT_FILENO);
     }
+#endif
 
     if (optind < argc ) {
         ptp_ctx.ptp_cfg_file = strdup(argv[optind]);
@@ -165,29 +174,31 @@ void ptp_main(int argc, char *argv[])
     ptp_cfg.debug = debug;
 
     // Add signal handler
-    memset(&sigaction_data, 0, sizeof(struct sigaction));
+#ifdef _WIN32
+#else
+	memset(&sigaction_data, 0, sizeof(struct sigaction));
     sigaction_data.sa_handler = signal_handler;
     
     if (sigaction(SIGUSR1, &sigaction_data, NULL) != 0) {
-        ERROR("Register signal handler failed\n");
+		LOG_ERROR("Register signal handler failed\n");
     }
     if (sigaction(SIGHUP, &sigaction_data, NULL) != 0) {
-        ERROR("Register signal handler failed\n");
+		LOG_ERROR("Register signal handler failed\n");
     }
     if (sigaction(SIGINT, &sigaction_data, NULL) != 0) {
-        ERROR("Register signal handler failed\n");
+		LOG_ERROR("Register signal handler failed\n");
     }
     if (sigaction(SIGTERM, &sigaction_data, NULL) != 0) {
-        ERROR("Register signal handler failed\n");
+		LOG_ERROR("Register signal handler failed\n");
     }
+#endif
 
     if( ptp_ctx.ptp_cfg_file ){
         ret = read_initialization(ptp_ctx.ptp_cfg_file);
         if (ret != PTP_ERR_OK) {
-            ERROR("CFG file read %s\n", ptp_ctx.ptp_cfg_file);
+			LOG_ERROR("CFG file read %s\n", ptp_ctx.ptp_cfg_file);
         }
     }
-
     // Init all context
     ptp_ctx.ports_list_head = 0;
     memset(&ptp_ctx.default_dataset, 0, sizeof(struct DefaultDataSet));
@@ -196,20 +207,20 @@ void ptp_main(int argc, char *argv[])
     ret = ptp_initialize_packet_if(&ptp_ctx.pkt_ctx, 
                                    ptp_ctx.packet_if_file);
     if (ret != 0) {
-        ERROR("ptp_initialize_packet_if\n");
+		LOG_ERROR("ptp_initialize_packet_if\n");
         return;
     }
     ret = ptp_initialize_os_if(&ptp_ctx.os_ctx,
                                ptp_ctx.os_if_file);
     if (ret != 0) {
-        ERROR("initialize_os_if\n");
+		LOG_ERROR("initialize_os_if\n");
         return;
     }
 
     ret = ptp_initialize_clock_if(&ptp_ctx.clk_ctx, 
                                   ptp_ctx.clock_if_file);
     if (ret != 0) {
-        ERROR("ptp_initialize_clock_if\n");
+		LOG_ERROR("ptp_initialize_clock_if\n");
         return;
     }
 
@@ -290,7 +301,7 @@ void ptp_main(int argc, char *argv[])
                 }
             }
             if (port == NULL) {
-                ERROR("frame from unconfigured port %i\n", port_num);
+				LOG_ERROR("frame from unconfigured port %i\n", port_num);
             }
 
             ptp_get_time(&ptp_ctx.clk_ctx, &current_time);
@@ -336,7 +347,9 @@ void ptp_main(int argc, char *argv[])
  */
 static void signal_handler(int signal_number)
 {
-    switch(signal_number){
+#ifdef _WIN32
+#else
+	switch (signal_number){
     case SIGUSR1:
         ptp_cfg.debug = 1;
         break;
@@ -347,6 +360,7 @@ static void signal_handler(int signal_number)
         daemon_running = 0;
         break;
     }
+#endif
 }
 
 /**
@@ -361,7 +375,7 @@ static void reconfig_ptp()
         DEBUG("Reconfig PTP\n");
         ret = read_initialization(ptp_ctx.ptp_cfg_file);
         if (ret != PTP_ERR_OK) {
-            ERROR("CFG file read %s\n", ptp_ctx.ptp_cfg_file);
+			LOG_ERROR("CFG file read %s\n", ptp_ctx.ptp_cfg_file);
         }
     }
 
@@ -371,19 +385,19 @@ static void reconfig_ptp()
     ret = ptp_reconfig_packet_if(&ptp_ctx.pkt_ctx, 
                                  ptp_ctx.packet_if_file);
     if (ret != 0) {
-        ERROR("ptp_reconfig_packet_if\n");
+		LOG_ERROR("ptp_reconfig_packet_if\n");
     }
 
     ret = ptp_reconfig_os_if(&ptp_ctx.os_ctx,
                              ptp_ctx.os_if_file);
     if (ret != 0) {
-        ERROR("ptp_reconfig_os_if\n");
+		LOG_ERROR("ptp_reconfig_os_if\n");
     }
 
     ret = ptp_reconfig_clock_if(&ptp_ctx.clk_ctx, 
                                 ptp_ctx.clock_if_file);
     if (ret != 0) {
-        ERROR("ptp_reconfig_clock_if\n");
+		LOG_ERROR("ptp_reconfig_clock_if\n");
     }
 
     init_current_dataset(&ptp_ctx.current_dataset);
@@ -421,7 +435,7 @@ void ptp_event_ctrl(enum ptp_event_ctrl event, void *arg)
         }
         break;
     default:
-        ERROR("EVENT_CTRL\n");
+		LOG_ERROR("EVENT_CTRL\n");
         break;
     }
 

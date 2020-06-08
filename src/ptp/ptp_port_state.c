@@ -188,7 +188,7 @@ void ptp_port_statemachine(struct ptp_port_ctx *ctx,
             ptp_port_state_slave(ctx, current_time, enter_state);
             break;
         default:
-            ERROR("Error state: %i\n", ctx->port_dataset.port_state);
+			LOG_ERROR("Error state: %i\n", ctx->port_dataset.port_state);
             break;
         }
     } while (ctx->port_state_updated);
@@ -627,7 +627,7 @@ void ptp_port_state_update(struct ptp_port_ctx *ctx,
     case PORT_SLAVE:
         break;
     default:
-        ERROR("Error state: %i\n", ctx->port_dataset.port_state);
+		LOG_ERROR("Error state: %i\n", ctx->port_dataset.port_state);
         break;
     }
     
@@ -660,7 +660,7 @@ bool ptp_port_bmc_update(struct ptp_port_ctx *ctx,
     bool state_update = false;
 
     if (ptp_get_time(&ptp_ctx.clk_ctx, &current_time) != PTP_ERR_OK) {
-        ERROR("ptp_get_time\n");
+		LOG_ERROR("ptp_get_time\n");
         // No valid time
         current_time.seconds = current_time.nanoseconds = 0;
     }
@@ -773,7 +773,7 @@ bool ptp_port_bmc_update(struct ptp_port_ctx *ctx,
         }
         break;
     default:
-        ERROR("BMC\n");
+		LOG_ERROR("BMC\n");
         break;
     }
     return state_update;
@@ -805,7 +805,7 @@ void ptp_port_announce_recv_timeout_check(struct ptp_port_ctx *ctx,
             ctx->announce_recv_timer_expired = true;
             ctx->timer_flags &= ~ANNOUNCE_RECV_TIMER;
         } else {
-            ERROR("fault state %s\n",
+			LOG_ERROR("fault state %s\n",
                   get_state_str(ctx->port_dataset.port_state));
         }
     }

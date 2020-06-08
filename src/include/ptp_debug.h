@@ -31,27 +31,31 @@
 
 #include <ptp_config.h>
 
-#define DEBUG(x...) \
+#ifdef _WIN32
+#define snprintf(...) _snprintf(__VA_ARGS__)
+#endif
+
+#define DEBUG(fmt,...) \
     do { \
         if(ptp_cfg.debug) { \
-            OUTPUT_SYSLOG(LOG_DEBUG, ##x); \
+            OUTPUT_SYSLOG(LOG_DEBUG, fmt, __VA_ARGS__); \
         } \
     } while(0)
 
-#define ERROR(x...) \
+#define LOG_ERROR(fmt,...) \
     do { \
-        OUTPUT_SYSLOG(LOG_ERR, ##x); \
+        OUTPUT_SYSLOG(LOG_ERR, fmt, __VA_ARGS__); \
     } while(0)
 
 /// Output a message to syslog. Not meant to be used directly.
-#define OUTPUT_SYSLOG(prio,fmt,x...) \
+#define OUTPUT_SYSLOG(prio,fmt,...) \
     syslog(LOG_DAEMON | prio, "%s:%i %s: " fmt, \
-            __FILE__, __LINE__, __FUNCTION__, ##x); \
+            __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__); \
 
-#define DEBUG_PLAIN(fmt,x...) DEBUG("[PLAIN] ", fmt, ##x)
+#define DEBUG_PLAIN(fmt,...) DEBUG("[PLAIN] ", fmt, __VA_ARGS__)
 
 static char tmp_str[40];
-inline static char *ptp_clk_id(u8 * clk_id)
+static char *ptp_clk_id(u8 * clk_id)
 {
     snprintf(tmp_str, 40, "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
              0xff & clk_id[0], 0xff & clk_id[1], 0xff & clk_id[2],
@@ -60,7 +64,7 @@ inline static char *ptp_clk_id(u8 * clk_id)
     return tmp_str;
 }
 
-inline static void ptp_dump(u8 * str, int len)
+static void ptp_dump(u8 * str, int len)
 {
     int i = 0;
     printf("DUMP: ");

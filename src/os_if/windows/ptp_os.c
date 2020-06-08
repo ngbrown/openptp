@@ -1,5 +1,5 @@
-/** @file os_if.h
-* OS interface description.
+/** @file ptp_os.c
+* Linux OS specific functions.
 */
 
 /*
@@ -24,25 +24,22 @@
 /******************************************************************************
 * $Id$
 ******************************************************************************/
-#ifndef _OS_IF_H_
-#define _OS_IF_H_
+#include <os_if.h>
+#include <ptp_general.h>
 
+#include <WinSock2.h>
+
+#define _CRT_RAND_S
 #include <stdlib.h>
-#include <stdio.h>
-//#include <unistd.h>
-#include <fcntl.h>
-//#include <sys/select.h>
-//#include <sys/time.h>
-#include <time.h>
-
-#include "ptp_general.h"
 
 /**
-* OS context information.
-*/
-struct os_ctx {
-    void *arg;                  ///< private data for os specific data        
+ * Private data.
+ */
+struct private_os_if {
+	int _nothing;
 };
+
+static struct private_os_if oif_data;
 
 /**
 * Function for initializing OS interface. 
@@ -50,7 +47,15 @@ struct os_ctx {
 * @param cfg_file Config file name for OS interface.
 * @return ptp error code.
 */
-int ptp_initialize_os_if(struct os_ctx *ctx, char* cfg_file);
+int ptp_initialize_os_if(struct os_ctx *ctx, char* cfg_file)
+{
+    struct private_os_if *oif = &oif_data;
+    memset(ctx, 0, sizeof(struct os_ctx));
+    memset(oif, 0, sizeof(struct private_os_if));
+    ctx->arg = oif;
+
+    return PTP_ERR_OK;
+}
 
 /**
 * Function for reconfiguring OS interface. 
@@ -58,14 +63,24 @@ int ptp_initialize_os_if(struct os_ctx *ctx, char* cfg_file);
 * @param cfg_file Config file name for OS interface.
 * @return ptp error code.
 */
-int ptp_reconfig_os_if(struct os_ctx *ctx, char* cfg_file);
+int ptp_reconfig_os_if(struct os_ctx *ctx, char* cfg_file)
+{
+//    struct private_os_if *oif = (struct private_os_if*) ctx->arg;
+
+    return PTP_ERR_OK;
+}
 
 /**
 * Function for closing OS interface. 
 * @param ctx clock context
 * @return ptp error code.
 */
-int ptp_close_os_if(struct os_ctx *ctx);
+int ptp_close_os_if(struct os_ctx *ctx)
+{
+//    struct private_os_if *oif = (struct private_os_if*) ctx->arg;
+
+    return PTP_ERR_OK;
+}
 
 /** 
 * Because the timestamp is implemented with 64 bit seconds field,
@@ -74,7 +89,22 @@ int ptp_close_os_if(struct os_ctx *ctx);
 * @param time PTP timestamp
 * @param buf buffer where to write timestamp.
 */
-void ptp_format_timestamp(struct Timestamp *time, u8 * buf);
+void ptp_format_timestamp(struct Timestamp *time, u8 * buf)
+{
+    u32 tmp2 = 0;
+    u16 tmp1 = 0;
+
+    tmp2 = *((u32 *) & (time->seconds));
+    tmp1 = *((u16 *) (((u32 *) & (time->seconds)) + 1));
+    tmp1 = htonl(tmp1);
+    tmp2 = htonl(tmp2);
+    memcpy(&buf[0], &tmp1, 2);
+    memcpy(&buf[2], &tmp2, 4);
+
+    tmp2 = *((u32 *) & (time->nanoseconds));
+    tmp2 = htonl(tmp2);
+    memcpy(&buf[6], &tmp2, 4);
+}
 
 /** 
 * Because the timestamp is implemented with 64 bit seconds field,
@@ -83,7 +113,26 @@ void ptp_format_timestamp(struct Timestamp *time, u8 * buf);
 * @param time PTP timestamp
 * @param buf timestamp in 10-byte network-byte-order.
 */
-void ptp_convert_timestamp(struct Timestamp *time, u8 * buf);
+void ptp_convert_timestamp(struct Timestamp *time, u8 * buf)
+{
+    u32 tmp2 = 0;
+    u16 tmp1 = 0;
+
+    time->seconds = 0;
+    memcpy(&tmp1, &buf[0], 2);
+    memcpy(&tmp2, &buf[2], 4);
+    tmp1 = ntohl(tmp1);
+    tmp2 = ntohl(tmp2);
+    *((u32 *) & (time->seconds)) = tmp2;
+    *((u16 *) (((u32 *) & (time->seconds)) + 1)) = tmp1;
+
+    time->nanoseconds = 0;
+    memcpy(&tmp2, &buf[6], 4);
+    tmp2 = ntohl(tmp2);
+    *((u32 *) & (time->nanoseconds)) = tmp2;
+
+    time->frac_nanoseconds = 0; // unused
+}
 
 /** 
 * Get random number. NOTE: this is best effort, no good randominess quaranteed.
@@ -91,7 +140,30 @@ void ptp_convert_timestamp(struct Timestamp *time, u8 * buf);
 * @param max maximum value for random number.
 * @return random number between requested values.
 */
-int ptp_random(int min, int max);
+int ptp_random(int min, int max)
+{
+	unsigned int number;
+
+	int tmp = min;
+
+	errno_t err = rand_s(&number);
+	if (err != 0) {
+        perror("rand_s");
+    } else {
+		tmp = number;
+        // Get it positive
+        if (tmp < 0) {
+            tmp = -tmp;
+        }
+        // rescale
+        tmp %= (max - min);
+        tmp += min;
+    }
+
+    DEBUG("random %i < [%i] < %i\n", min, tmp, max);
+
+    return tmp;
+}
 
 /** 
 * Return bigger value.
@@ -99,6 +171,10 @@ int ptp_random(int min, int max);
 * @param v2 value 2.
 * @return bigger value.
 */
-int ptp_max(int v1, int v2);
-
-#endif                          //_OS_IF_H_
+int ptp_max(int v1, int v2)
+{
+    if (v1 > v2) {
+        return v1;
+    }
+    return v2;
+}

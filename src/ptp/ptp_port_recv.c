@@ -137,7 +137,7 @@ static void ptp_port_recv_sync(struct ptp_port_ctx *ctx,
                                struct ptp_sync *msg,
                                struct Timestamp *time)
 {
-    int64_t delay_asymmetry = 0;
+    s64 delay_asymmetry = 0;
     DEBUG("\n");
 
     // Check port state
@@ -229,7 +229,7 @@ static void ptp_port_recv_follow_up(struct ptp_port_ctx *ctx,
                 ptp_sync_rcv(&ptp_ctx.clk_ctx,
                              &master_time, &ctx->sync_recv_time);
             } else {
-                ERROR
+				LOG_ERROR
                     ("Follow_up from current master, seq_id mismatch:%i %i\n",
                      ctx->sync_seqid, ntohs(msg->hdr.seq_id));
             }
@@ -325,7 +325,7 @@ static void ptp_port_recv_announce(struct ptp_port_ctx *ctx,
         // Create new foreign record
         foreign_elem = malloc(sizeof(struct ForeignMasterDataSetElem));
         if (!foreign_elem) {
-            ERROR("Mem alloc fail\n");
+			LOG_ERROR("Mem alloc fail\n");
         } else {
             memset(foreign_elem, 0,
                    sizeof(struct ForeignMasterDataSetElem));

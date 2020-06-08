@@ -80,7 +80,7 @@ void ptp_bmc_run(struct ptp_ctx *ptp_ctx)
     // Create D0 annouce message for BMC purposes
     ret = create_announce(ptp_ctx->ports_list_head, tmpbuf, 0, 1);
     if (ret <= 0) {
-        ERROR("D0 announce creation failed\n");
+		LOG_ERROR("D0 announce creation failed\n");
         return;
     }
     D0 = (struct ptp_announce *) tmpbuf;
@@ -142,7 +142,7 @@ void ptp_bmc_run(struct ptp_ctx *ptp_ctx)
                 ret = 0;
             }
             if (ret < 0) {
-                ERROR("AnnounceDataComparison ERROR %i\n", ret);
+				LOG_ERROR("AnnounceDataComparison ERROR %i\n", ret);
                 continue;
             }
             if ((ret == 0) || (ret == 1)) {     // Yes -> Master
@@ -165,7 +165,7 @@ void ptp_bmc_run(struct ptp_ctx *ptp_ctx)
                 ret = 0;        // no foreign available -> DO is best   
             }
             if (ret < 0) {
-                ERROR("AnnounceDataComparison ERROR %i\n", ret);
+				LOG_ERROR("AnnounceDataComparison ERROR %i\n", ret);
                 continue;
             }
             if ((ret == 0) || (ret == 1)) {     // Yes -> Master
@@ -195,7 +195,7 @@ void ptp_bmc_run(struct ptp_ctx *ptp_ctx)
                         ret = 0;
                     }
                     if (ret < 0) {
-                        ERROR("AnnounceDataComparison ERROR %i\n", ret);
+						LOG_ERROR("AnnounceDataComparison ERROR %i\n", ret);
                         continue;
                     }
                     if (ret == 1) {
@@ -377,7 +377,7 @@ static void ptp_bmc_update(struct ptp_ctx *ptp_ctx,
 
         break;
     default:
-        ERROR("BMC\n");
+		LOG_ERROR("BMC\n");
         break;
     }
 }
@@ -432,7 +432,7 @@ static struct ForeignMasterDataSet *ptp_bmc_select_best(struct
                                      &foreign_best->msg,
                                      &foreign_best->dst_port_id);
         if (ret < 0) {
-            ERROR("AnnouceDataComparison ERROR %i\n", ret);
+			LOG_ERROR("AnnouceDataComparison ERROR %i\n", ret);
             return NULL;
         } else if ((ret == 0) || (ret == 1)) {
             // first was better, change foreign_best
@@ -468,10 +468,10 @@ static int AnnounceDataComparison(struct ptp_announce *msgA,
     int ret = 0;
 
     if (msgA == NULL) {
-        ERROR("\n");
+		LOG_ERROR("\n");
     }
     if (msgB == NULL) {
-        ERROR("\n");
+		LOG_ERROR("\n");
     }
 
     /* Compare two announces, candidates A and B */
@@ -711,7 +711,7 @@ static int AnnounceDataComparison(struct ptp_announce *msgA,
                   ptp_clk_id(msgB->hdr.src_port_id.clock_identity));
             return 2;           // Return B better than A            
         } else {
-            ERROR("BMC\n");
+			LOG_ERROR("BMC\n");
             return -1;
         }
     }

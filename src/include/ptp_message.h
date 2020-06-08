@@ -67,9 +67,17 @@
 */
 #define PTP_MSG_DEFAULT_INTERVAL    0x7F        ///< default interval
 
+
+// for GNU gcc
+// #define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+
+// for Visual C++
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+
 /**
 * PTP header format (common header for all PTP messages).
 */
+PACK(
 struct ptp_header {
     u8 msg_type;                ///< ptp message type (messageType) (bits 3-0), transportSpecific (bits 7-4)
     u8 ptp_ver;                 ///< ptp version (bits 3-0)(versionPTP)
@@ -83,12 +91,13 @@ struct ptp_header {
     u16 seq_id;                 ///< sequenceId
     u8 control;                 ///< control 
     s8 log_mean_msg_interval;   ///< logMeanMessageInterval
-} __attribute__ ((packed));
+});
 
 
 /**
 * PTP announce message.
 */
+PACK(
 struct ptp_announce {
     struct ptp_header hdr;      ///< common PTP header
     u8 origin_tstamp[10];       ///< originTimestamp 
@@ -100,75 +109,83 @@ struct ptp_announce {
     ClockIdentity grandmasterId;        ///< grandmasterIdentity
     u16 steps_removed;          ///< stepsRemoved
     u8 time_source;             ///< timeSource
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Sync message.
 */
+PACK(
 struct ptp_sync {
     struct ptp_header hdr;      ///< common PTP header
     u8 origin_tstamp[10];       ///< originTimestamp 
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Delay_Req message.
 */
+PACK(
 struct ptp_delay_req {
     struct ptp_header hdr;      ///< common PTP header
     u8 origin_tstamp[10];       ///< originTimestamp 
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Follw_Up message.
 */
+PACK(
 struct ptp_follow_up {
     struct ptp_header hdr;      ///< common PTP header
     u8 precise_origin_tstamp[10];       ///< preciseOriginTimestamp 
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Delay_Resp message.
 */
+PACK(
 struct ptp_delay_resp {
     struct ptp_header hdr;      ///< common PTP header
     u8 recv_tstamp[10];         ///< receiveTimestamp 
     struct PortIdentity req_port_id;    ///< requestingPortIdentity 
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Pdelay_Req message.
 */
+PACK(
 struct ptp_pdelay_req {
     struct ptp_header hdr;      ///< common PTP header
     u8 origin_tstamp[10];       ///< originTimestamp 
     u8 res[10];
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Pdelay_Resp message.
 */
+PACK(
 struct ptp_pdelay_resp {
     struct ptp_header hdr;      ///< common PTP header
     u8 recv_tstamp[10];         ///< requestReceiptTimestamp 
     u8 req_port_id[10];         ///< requestingPortIdentity 
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Pdelay_Resp_Follow_Up message.
 */
+PACK(
 struct ptp_pdelay_resp_follow_up {
     struct ptp_header hdr;      ///< common PTP header
     u8 resp_origin_tstamp[10];  ///< responseOriginTimestamp 
     u8 req_port_id[10];         ///< requestingPortIdentity 
-} __attribute__ ((packed));
+});
 
 /**
 * PTP Signaling message.
 */
+PACK(
 struct ptp_signaling {
     struct ptp_header hdr;      ///< common PTP header
     u8 target_port_id[10];      ///< targetPortIdentity
     u8 tlvs;                    ///< One or more TLVs
-} __attribute__ ((packed));
+});
 
 #endif                          // _PTP_MESSAGE_H_

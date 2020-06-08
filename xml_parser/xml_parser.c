@@ -29,23 +29,23 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <syslog.h>
-#include <values.h>
+//#include <values.h>
 
 #include "xml_parser.h"
 
-#define MAX_TAG_LENGTH          100
+#define MAX_TAG_LENGTH          300
 
 // debug macros
-#define XML_DEBUG(fmt,x...) \
+#define XML_DEBUG(fmt,...) \
     do { \
         syslog(LOG_DAEMON | LOG_DEBUG, "%s:%i %s: " fmt, \
-                __FILE__, __LINE__, __FUNCTION__, ##x); \
+                __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__); \
     } while(0)
 
-#define XML_ERROR(fmt,x...) \
+#define XML_ERROR(fmt,...) \
     do { \
         syslog(LOG_DAEMON | LOG_ERR, "ERROR %s:%i %s: " fmt, \
-                __FILE__, __LINE__, __FUNCTION__, ##x); \
+                __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__); \
     } while(0)
 
 

@@ -51,7 +51,7 @@ void ptp_new_port(int port_num,
     while (ctx != NULL) {
         if (ctx->port_dataset.port_identity.port_number == port_num) {
             // match found
-            ERROR("port_num is in use!!!\n");
+			LOG_ERROR("port_num is in use!!!\n");
             return;
         }
         ctx = ctx->next;
@@ -59,7 +59,7 @@ void ptp_new_port(int port_num,
 
     ctx = malloc(sizeof(struct ptp_port_ctx));
     if (ctx == 0) {
-        ERROR("Allocation of new port ctx failed\n");
+		LOG_ERROR("Allocation of new port ctx failed\n");
         return;
     }
     memset(ctx, 0, sizeof(struct ptp_port_ctx));
@@ -81,7 +81,7 @@ void ptp_new_port(int port_num,
     // Init data from config file
     init_port_dataset( &ctx->port_dataset );
 
-    ctx->port_dataset.version_number = PTP_VERSION;
+	ctx->port_dataset.version_number = PTP_CURRENT_VERSION;
     ctx->port_dataset.announce_receipt_timeout = ANNOUNCE_WINDOW;
     ctx->port_dataset.delay_mechanism = DELAY_DISABLED;
     
@@ -131,7 +131,7 @@ void ptp_close_port(int port_num)
         tmp_ctx = tmp_ctx->next;
     }
     if (!tmp_ctx) {
-        ERROR("NOT FOUND\n");
+		LOG_ERROR("NOT FOUND\n");
     } else {
         free(tmp_ctx);
         // Update default dataset
@@ -163,7 +163,7 @@ void ptp_frame_sent(int port_num,
         ctx = ctx->next;
     }
     if (!ctx) {
-        ERROR("Port not found\n");
+		LOG_ERROR("Port not found\n");
         return;
     }
 

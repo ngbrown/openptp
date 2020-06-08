@@ -242,7 +242,7 @@ int create_delay_req(struct ptp_port_ctx *ctx, char *buf, u16 seqid)
     struct ptp_delay_req *msg = 0;
     unsigned short len = sizeof(struct ptp_delay_req);
     struct Timestamp time;
-    int64_t delay_asymmetry = 0;
+    s64 delay_asymmetry = 0;
     int ret = 0;
 
     DEBUG("\n");
@@ -288,7 +288,7 @@ int create_delay_req(struct ptp_port_ctx *ctx, char *buf, u16 seqid)
     // Delay_req msg content (timestamp)
     ret = ptp_get_time(&ptp_ctx.clk_ctx, &time);
     if (ret < PTP_ERR_OK) {
-        ERROR("ptp_get_time\n");
+		LOG_ERROR("ptp_get_time\n");
         return ret;
     }
     ptp_format_timestamp(&time, msg->origin_tstamp);

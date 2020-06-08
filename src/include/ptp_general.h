@@ -28,9 +28,9 @@
 #define _PTP_GENERAL_H_
 #include <stdio.h>
 #include <string.h>
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 
-#include "linux/ptp_types.h"
+#include "windows/ptp_types.h"
 
 /// Error codes.
 #define PTP_ERR_OK       0      ///< No error
@@ -212,6 +212,7 @@ enum FaultSeverity {
 /**
 * The FaultRecord type is used to construct fault logs.
 */
+/*
 struct FaultRecord {
     u16 fault_record_length;
     struct Timestamp fault_time;
@@ -220,6 +221,7 @@ struct FaultRecord {
     struct PTPText fault_value; ///< variable length
     struct PTPText fault_description;   ///< variable length
 };
+*/
 
 /**
 * Time source enumeration.

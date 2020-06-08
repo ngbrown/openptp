@@ -29,10 +29,9 @@
 
 #include <ptp_general.h>
 
-#define DEFAULT_CFG_FILE    "ptp_config.xml"
 #define CONFIG_VERSION      "1.4"
 // Protocol version
-#define PTP_VERSION         2
+#define PTP_CURRENT_VERSION         2
 
 // Maximum number of foreign master datasets that can be stored per port
 // this list should cleanup if better masters arrive to the network
@@ -40,10 +39,10 @@
 
 // maximum number of interfaces supported
 #define MAX_NUM_INTERFACES  20
-#define INTERFACE_NAME_LEN  10
+#define INTERFACE_NAME_LEN  256
 #define IP_STR_MAX_LEN      20
 
-#define MAX_VALUE_LEN 100       // for parser
+#define MAX_VALUE_LEN 300       // for parser
 
 // Constants
 #define DEFAULT_EVENT_PORT          319

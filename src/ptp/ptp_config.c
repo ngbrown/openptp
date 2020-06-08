@@ -85,25 +85,25 @@ int read_initialization(char *filename)
     }
 
     DEBUG("Open %s\n", filename);
-    fp = fopen(filename, "r");
+    fp = fopen(filename, "rb");
     if (fp <= 0) {
         perror("open");
         return PTP_ERR_GEN;
     }
     // Check version
     if (parse_str(fp, "config_ver", tmp, 20, &section_length) != PARSER_OK) {
-        ERROR("config_ver not found\n");
+		LOG_ERROR("config_ver not found\n");
         return PTP_ERR_GEN;
     }
     if (strncmp(tmp, CONFIG_VERSION, MAX_VALUE_LEN) != 0) {
-        ERROR("config version %s not supported\n", tmp);
+		LOG_ERROR("config version %s not supported\n", tmp);
         return PTP_ERR_GEN;
     }
     // Start by parsing general options
     fseek(fp, 0, SEEK_SET);
     section_length = search_tag(fp, "General", 0);
     if (section_length < PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     // Remember this section for relaxed element ordering
@@ -112,7 +112,7 @@ int read_initialization(char *filename)
 
     // get debug flag
     if (parse_int(fp, "debug", &value, &section_length) != PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("debug %i\n", value);
@@ -139,7 +139,7 @@ int read_initialization(char *filename)
         cur_section_length = section_length;
 
         if (strncmp(tmp, "name", MAX_VALUE_LEN) != 0) {
-            ERROR("Unknown attribute for Interface %s\n", tmp);
+			LOG_ERROR("Unknown attribute for Interface %s\n", tmp);
         }
         ptp_cfg.interfaces[ptp_cfg.num_interfaces].enabled = 1;
 
@@ -202,13 +202,13 @@ int read_initialization(char *filename)
     fseek(fp, 0, SEEK_SET);
     section_length = search_tag(fp, "Basic", 0);
     if (section_length < PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     // get one_step_clock flag
     if (parse_int(fp, "one_step_clock", &value, &section_length) !=
         PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("one_step_clock %i\n", value);
@@ -218,7 +218,7 @@ int read_initialization(char *filename)
     fseek(fp, 0, SEEK_SET);
     section_length = search_tag(fp, "Clock", 0);
     if (section_length < PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     // Remember this section for relaxed element ordering
@@ -227,7 +227,7 @@ int read_initialization(char *filename)
 
     // get clock_class
     if (parse_int(fp, "clock_class", &value, &section_length) != PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("clock_class %i\n", value);
@@ -239,7 +239,7 @@ int read_initialization(char *filename)
     if (parse_str
         (fp, "clock_accuracy", tmp, MAX_VALUE_LEN,
          &section_length) != PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     for (i = 0; i < str_to_accuracy_size; i++) {
@@ -250,7 +250,7 @@ int read_initialization(char *filename)
         }
     }
     if (i == str_to_accuracy_size) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
 
@@ -259,7 +259,7 @@ int read_initialization(char *filename)
     section_length = cur_section_length;
     if (parse_int(fp, "clock_priority1", &value, &section_length) !=
         PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("clock_priority1 %i\n", value);
@@ -270,7 +270,7 @@ int read_initialization(char *filename)
     section_length = cur_section_length;
     if (parse_int(fp, "clock_priority2", &value, &section_length) !=
         PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("clock_priority2 %i\n", value);
@@ -280,7 +280,7 @@ int read_initialization(char *filename)
     fseek(fp, cur_section_pos, SEEK_SET);
     section_length = cur_section_length;
     if (parse_int(fp, "domain", &value, &section_length) != PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("domain %i\n", value);
@@ -291,7 +291,7 @@ int read_initialization(char *filename)
     section_length = cur_section_length;
     if (parse_str(fp, "clock_source", tmp, MAX_VALUE_LEN, &section_length)
         != PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     for (i = 0; i < str_to_source_size; i++) {
@@ -302,7 +302,7 @@ int read_initialization(char *filename)
         }
     }
     if (i == str_to_source_size) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
 
@@ -310,7 +310,7 @@ int read_initialization(char *filename)
     fseek(fp, 0, SEEK_SET);
     section_length = search_tag(fp, "Intervals", 0);
     if (section_length < PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     // Remember this section for relaxed element ordering
@@ -320,7 +320,7 @@ int read_initialization(char *filename)
     // get announce_interval
     if (parse_int(fp, "announce_interval", &value, &section_length) !=
         PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("announce_interval %i\n", value);
@@ -331,7 +331,7 @@ int read_initialization(char *filename)
     section_length = cur_section_length;
     if (parse_int(fp, "sync_interval", &value, &section_length) !=
         PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("sync_interval %i\n", value);
@@ -342,7 +342,7 @@ int read_initialization(char *filename)
     section_length = cur_section_length;
     if (parse_int(fp, "delay_req_interval", &value, &section_length) !=
         PARSER_OK) {
-        ERROR("parse\n");
+		LOG_ERROR("parse\n");
         return PTP_ERR_GEN;
     }
     DEBUG("delay_req_interval %i\n", value);
